@@ -1,0 +1,21 @@
+{
+  "name": "steam-viewer-backend",
+  "version": "1.0.0",
+  "description": "Just a server to make calls to the steam api",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "nodemon server.js"
+  },
+  "author": "rhs",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.7.6",
+    "nodemon": "^3.1.7"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1"
+  }
+}
