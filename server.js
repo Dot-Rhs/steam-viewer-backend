@@ -19,8 +19,33 @@ app.use(function (req, res, next) {
 
 app.get("/getPlayer/:id", async function (req, res) {
   try {
-    const response = await axios.get(
+    const getPlayer = await axios.get(
       `http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${process.env.API_KEY}&steamids=${req.params.id}`,
+    );
+    const data = getPlayer.data;
+    res.send(data);
+  } catch (err) {
+    console.log("errororr: ", err);
+  }
+});
+
+app.get("/gameInfo/:id", async (req, res) => {
+  try {
+    const response = await axios.get(
+      `http://store.steampowered.com/api/appdetails?appids=${req.params.id}`,
+    );
+    const data = response.data;
+    console.log("in route: ", data);
+    res.send(data);
+  } catch (err) {
+    console.log("errororr: ", err);
+  }
+});
+
+app.get("/getPlayer/friends/:id", async function (req, res) {
+  try {
+    const response = await axios.get(
+      `http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=${process.env.API_KEY}&steamid=${req.params.id}&relationship=friend`,
     );
     const data = response.data;
     res.send(data);
@@ -35,18 +60,6 @@ app.get("/getNews/:id", async function (req, res) {
       `http://api.steampowered.com/ISteamNews/GetNewsForApp/v0002/?appid=${req.params.id}&count=${req.query.count}&format=json`,
     );
     // console.log("john: ", req.params.id, req.query.count);
-    const data = response.data;
-    res.send(data);
-  } catch (err) {
-    console.log("errororr: ", err);
-  }
-});
-
-app.get("/getFriends/:id", async function (req, res) {
-  try {
-    const response = await axios.get(
-      `http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=${process.env.API_KEY}&steamid=${req.params.id}&relationship=friend`,
-    );
     const data = response.data;
     res.send(data);
   } catch (err) {
