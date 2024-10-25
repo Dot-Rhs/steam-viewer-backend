@@ -8,6 +8,9 @@ dotenv.config();
 
 app.set("port", 5000);
 
+const gameInfoService = "http://localhost:5001/getGameInfo";
+const playerInfoService = "http://localhost:5002/getPlayerInfo";
+
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
@@ -17,25 +20,37 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.get("/getPlayer/:id", async function (req, res) {
+app.use((req, res, next) => {
+  console.log("incoming request: " + req.method + " " + req.url);
+  next();
+});
+
+app.get("/player/:id", async function (req, res) {
   try {
-    const getPlayer = await axios.get(
-      `http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${process.env.API_KEY}&steamids=${req.params.id}`,
-    );
-    const data = getPlayer.data;
+    const [playerDetails] = await Promise.allSettled([
+      axios.get(`${playerInfoService}/${req.params.id}`),
+      //  axios.get(`${gameInfoService}/${req.params.id}/players`),
+    ]);
+    const data = playerDetails.value.data;
+    console.log("BONG: ", data);
     res.send(data);
   } catch (err) {
     console.log("errororr: ", err);
+    res
+      .status(500)
+      .send("Error fetching player details. Please try again later.");
   }
 });
 
+// Moving to service
 app.get("/gameInfo/:id", async (req, res) => {
   try {
     const response = await axios.get(
       `http://store.steampowered.com/api/appdetails?appids=${req.params.id}`,
     );
+
     const data = response.data;
-    console.log("in route: ", data);
+    // console.log("in route: ", data);
     res.send(data);
   } catch (err) {
     console.log("errororr: ", err);
@@ -64,6 +79,28 @@ app.get("/getNews/:id", async function (req, res) {
     res.send(data);
   } catch (err) {
     console.log("errororr: ", err);
+  }
+});
+
+app.get("/aggregateGameInfo/:id", async (req, res) => {
+  try {
+    const [gameInfo, currentPlayers] = await Promise.allSettled([
+      axios.get(`${gameInfoService}/${req.params.id}`),
+      axios.get(`${gameInfoService}/${req.params.id}/players`),
+    ]);
+
+    const result = {
+      ...gameInfo.value.data,
+      data: {
+        ...gameInfo.value.data.data,
+        currentPlayers: currentPlayers.value.data?.player_count || null,
+      },
+    };
+    console.log("RESSS: ", result);
+
+    res.send(result);
+  } catch (error) {
+    res.status(500).send(error.message);
   }
 });
 
